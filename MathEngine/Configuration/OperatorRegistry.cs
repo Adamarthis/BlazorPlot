@@ -24,7 +24,7 @@ namespace MathEngine.Configuration
             Register("-", 1, Expression.Subtract);
             Register("*", 2, Expression.Multiply);
             Register("/", 2, Expression.Divide);
-            Register("^", 1, Expression.Power);
+            Register("^", 3, Expression.Power);
         }
 
         public static void Register(string symbol, int precendence, Func<Expression, Expression, Expression> compiler)

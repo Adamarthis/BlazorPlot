@@ -1,9 +1,93 @@
 ﻿using System.Globalization;
 using MathEngine.Expressions;
 using MathEngine.Lexing;
+
 namespace MathEngine
 {
     public class Parser
     {
+        private readonly List<Token> _tokens;
+        private int _position;
+
+        public Parser(List<Token> tokens)
+        {
+            _tokens = tokens;
+            _position = 0;
+        }
+
+        private Token Current => _position < _tokens.Count ? _tokens[_position] : new Token(TokenType.EOF, "");
+        private void Advance() => _position++;
+
+        private int GetPrecedence(string op) => op switch
+        {
+            "+" or "-" => 1,
+            "*" or "/" => 2,
+            "^" => 3,
+            _ => 0
+        };
+
+        public INode Parse()
+        {
+            var nodes = new Stack<INode>();
+            var operators = new Stack<Token>();
+
+            while (Current.Type != TokenType.EOF)
+            {
+                if (Current.Type == TokenType.Number)
+                {
+                    double value = double.Parse(Current.Value, CultureInfo.InvariantCulture);
+                    nodes.Push(new NumberNode(value));
+                    Advance();
+                }
+                else if (Current.Type == TokenType.Variable)
+                {
+                    nodes.Push(new VariableNode());
+                    Advance();
+                }
+                else if (Current.Type == TokenType.Operator)
+                {
+                    while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && GetPrecedence(operators.Peek().Value) >= GetPrecedence(Current.Value))
+                    {
+                        ProcessOperator(nodes, operators.Pop());
+                    }
+
+                    operators.Push(Current);
+                    Advance();
+                }
+                else if (Current.Type == TokenType.LParenthesis)
+                {
+                    operators.Push(Current);
+                    Advance();
+                }
+                else if (Current.Type == TokenType.RParenthesis)
+                {
+                    while (operators.Count > 0 && operators.Peek().Type != TokenType.LParenthesis)
+                    {
+                        ProcessOperator(nodes, operators.Pop());
+                    }
+
+                    if (operators.Count > 0 && operators.Peek().Type == TokenType.LParenthesis)
+                    {
+                        operators.Pop();
+                    }
+                    Advance();
+                }
+            }
+
+            while (operators.Count > 0)
+            {
+                ProcessOperator(nodes, operators.Pop());
+            }
+
+            return nodes.Pop();
+        }
+
+        private void ProcessOperator(Stack<INode> nodes, Token opToken)
+        {
+            var right = nodes.Pop();
+            var left = nodes.Pop();
+
+            nodes.Push(new BinaryNode(left, right, opToken.Value));
+        }
     }
 }

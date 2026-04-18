@@ -50,19 +50,22 @@ namespace MathEngine.Parsing
                 }
                 else if (Current.Type == TokenType.Operator)
                 {
+                    var currentToken = Current;
+                    
                     bool isUnary = Current.Value == "-" && (_position == 0 || _tokens[_position - 1].Type == TokenType.LParenthesis || _tokens[_position - 1].Type == TokenType.Operator);
                     
-                    if (isUnary )
+                    if (isUnary)
                     {
                         nodes.Push(new NumberNode(0));
+                        currentToken = new Token(TokenType.Operator, "~");
                     }
 
-                    while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && OperatorRegistry.GetPrecedence(operators.Peek().Value) >= OperatorRegistry.GetPrecedence(Current.Value))
+                    while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && OperatorRegistry.GetPrecedence(operators.Peek().Value) >= OperatorRegistry.GetPrecedence(currentToken.Value))
                     {
                         ProcessOperator(nodes, operators.Pop());
                     }
 
-                    operators.Push(Current);
+                    operators.Push(currentToken);
                     Advance();
                 }
                 else if (Current.Type == TokenType.LParenthesis)

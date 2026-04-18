@@ -24,7 +24,10 @@ namespace MathEngine.Configuration
             Register("-", 1, Expression.Subtract);
             Register("*", 2, Expression.Multiply);
             Register("/", 2, Expression.Divide);
-            Register("^", 3, Expression.Power);
+            Register("^", 4, Expression.Power);
+
+            // shadow operator for unary minus fix
+            Register("~", 3, Expression.Subtract);
         }
 
         public static void Register(string symbol, int precedence, Func<Expression, Expression, Expression> compiler)

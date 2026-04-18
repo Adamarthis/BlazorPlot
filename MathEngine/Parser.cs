@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using MathEngine.Configuration;
 using MathEngine.Expressions;
 using MathEngine.Lexing;
 
@@ -17,14 +18,6 @@ namespace MathEngine
 
         private Token Current => _position < _tokens.Count ? _tokens[_position] : new Token(TokenType.EOF, "");
         private void Advance() => _position++;
-
-        private int GetPrecedence(string op) => op switch
-        {
-            "+" or "-" => 1,
-            "*" or "/" => 2,
-            "^" => 3,
-            _ => 0
-        };
 
         public INode Parse()
         {
@@ -46,7 +39,7 @@ namespace MathEngine
                 }
                 else if (Current.Type == TokenType.Operator)
                 {
-                    while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && GetPrecedence(operators.Peek().Value) >= GetPrecedence(Current.Value))
+                    while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && OperatorRegistry.GetPrecendence(operators.Peek().Value) >= OperatorRegistry.GetPrecedence(Current.Value))
                     {
                         ProcessOperator(nodes, operators.Pop());
                     }

@@ -99,7 +99,19 @@ namespace MathEngine.Parsing
 
             while (operators.Count > 0)
             {
-                ProcessOperator(nodes, operators.Pop());
+                var op = operators.Pop();
+
+                if (op.Type == TokenType.LParenthesis)
+                {
+                    throw new Exception("Mismatched parentheses: Missing ')'");
+                }
+                
+                ProcessOperator(nodes, op);
+            }
+
+            if (nodes.Count == 0)
+            {
+                throw new Exception("Empty expression");
             }
 
             return nodes.Pop();

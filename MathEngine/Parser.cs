@@ -39,7 +39,7 @@ namespace MathEngine
                 }
                 else if (Current.Type == TokenType.Operator)
                 {
-                    while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && OperatorRegistry.GetPrecendence(operators.Peek().Value) >= OperatorRegistry.GetPrecedence(Current.Value))
+                    while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && OperatorRegistry.GetPrecedence(operators.Peek().Value) >= OperatorRegistry.GetPrecedence(Current.Value))
                     {
                         ProcessOperator(nodes, operators.Pop());
                     }

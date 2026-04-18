@@ -32,6 +32,16 @@ namespace MathEngine
                     nodes.Push(new NumberNode(value));
                     Advance();
                 }
+                else if (Current.Type == TokenType.Function)
+                {
+                    if (!FunctionRegistry.isFunction(Current.Value))
+                    {
+                        throw new Exception($"Function '{Current.Value}' is not supported");
+                    }
+
+                    operators.Push(Current);
+                    Advance();
+                }
                 else if (Current.Type == TokenType.Variable)
                 {
                     nodes.Push(new VariableNode());
@@ -62,6 +72,13 @@ namespace MathEngine
                     if (operators.Count > 0 && operators.Peek().Type == TokenType.LParenthesis)
                     {
                         operators.Pop();
+                    }
+
+                    if (operators.Count > 0 && operators.Peek().Type == TokenType.Function)
+                    {
+                        var funcToken = operators.Pop();
+                        var arg = nodes.Pop();
+                        nodes.Push(new FunctionNode(funcToken.Value, arg));
                     }
                     Advance();
                 }

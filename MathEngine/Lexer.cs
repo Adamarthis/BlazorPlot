@@ -1,6 +1,7 @@
 ﻿using System;
 
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MathEngine
@@ -62,12 +63,32 @@ namespace MathEngine
 
         private string ReadNumber()
         {
-            throw new NotImplementedException();
+            var sb = new StringBuilder();
+            while (char.IsDigit(Current) || Current == '.')
+            {
+                sb.Append(Current);
+                Advance();
+            }
+            return sb.ToString();
         }
 
-        private string ReadIdentifier()
+        private Token ReadIdentifier()
         {
-            throw new NotImplementedException();
+            var sb = new StringBuilder();
+            while (char.IsLetter(Current))
+            {
+                sb.Append(Current);
+                Advance();
+            }
+
+            string identifier = sb.ToString();
+
+            if (identifier == "x" || identifier == "y")
+            {
+                return new Token(TokenType.Variable, identifier);
+            }
+            
+            return new Token(TokenType.Function, identifier);
         }
 
     }

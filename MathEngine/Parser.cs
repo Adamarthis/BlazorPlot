@@ -34,7 +34,7 @@ namespace MathEngine
                 }
                 else if (Current.Type == TokenType.Function)
                 {
-                    if (!FunctionRegistry.isFunction(Current.Value))
+                    if (!FunctionRegistry.IsFunction(Current.Value))
                     {
                         throw new Exception($"Function '{Current.Value}' is not supported");
                     }

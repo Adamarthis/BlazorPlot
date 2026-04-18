@@ -36,7 +36,7 @@ public class EngineTests
     public void OperatorPrecedenceTest()
     {
         Assert.That(Evaluate("2 + 2 * 2"), Is.EqualTo(6).Within(1e-9));
-        Assert.That(Evaluate("3 * 2 ^ 2"), Is.EqualTo(24).Within(1e-9));
+        Assert.That(Evaluate("3 * 2 ^ 3"), Is.EqualTo(24).Within(1e-9));
     }
 
     [Test]
@@ -51,7 +51,7 @@ public class EngineTests
     {
         Assert.That(Evaluate("x + 5", x: 10), Is.EqualTo(15).Within(1e-9));
         Assert.That(Evaluate("x * x", x: 4), Is.EqualTo(16).Within(1e-9));
-        Assert.That(Evaluate("2 * x ^ 2", x: 10), Is.EqualTo(18).Within(1e-9));
+        Assert.That(Evaluate("2 * x ^ 2", x: 3), Is.EqualTo(18).Within(1e-9));
     }
 
     [Test]
@@ -61,6 +61,7 @@ public class EngineTests
         Assert.That(Evaluate("cos(sin(0))"), Is.EqualTo(1).Within(1e-9));
     }
 
+    [Test]
     public void UnaryMinusTest()
     {
         Assert.That(Evaluate("-5"), Is.EqualTo(-5).Within(1e-9));
@@ -69,5 +70,32 @@ public class EngineTests
         Assert.That(Evaluate("-(2 + 3)"), Is.EqualTo(-5).Within(1e-9));
     }
 
-    //TODO: ZERO DIVISION TEST 
+    [Test]
+    public void DivisionByZeroTest()
+    {
+        Assert.That(Evaluate("10 / 0"), Is.EqualTo(double.PositiveInfinity));
+        Assert.That(Evaluate("-10 / 0"), Is.EqualTo(double.NegativeInfinity));
+        Assert.That(Evaluate("0 / 0"), Is.NaN);
+    }
+
+    [Test]
+    public void CaseInsensitivityTest()
+    {
+        Assert.That(Evaluate("SIN(X)", x:0), Is.EqualTo(0).Within(1e-9));
+        Assert.That(Evaluate("CoS(x)", x: 0), Is.EqualTo(1).Within(1e-9));
+    }
+
+    [Test]
+    public void InvalidCharactersThrowsExceptionTest()
+    {
+        var ex = Assert.Throws<Exception>(() => Evaluate("2 + $"));
+        Assert.That(ex.Message, Does.Contain("Unexpected character"));
+    }
+
+    [Test]
+    public void UnknownFunctionThrowsExceptionTest()
+    {
+        var ex = Assert.Throws<Exception>(() => Evaluate("magic(5)"));
+        Assert.That(ex.Message, Does.Contain("is not supported"));
+    }
 }

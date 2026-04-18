@@ -54,6 +54,21 @@ namespace MathEngine.Lexing
                     throw new Exception($"Unexpected character: {c}");
                 }
             }
+
+            for (int i = 0; i < tokens.Count - 1; i++)
+            {
+                var current = tokens[i];
+                var next = tokens[i + 1];
+
+                bool implicitMultiply = (current.Type == TokenType.Number || current.Type == TokenType.Variable || current.Type == TokenType.RParenthesis) && (next.Type == TokenType.Variable || next.Type == TokenType.Function || next.Type == TokenType.LParenthesis);
+
+                if ( implicitMultiply)
+                {
+                    tokens.Insert(i+1, new Token(TokenType.Operator, "*"));
+                    i++;
+                }
+            }
+
             tokens.Add(new Token(TokenType.EOF, string.Empty));
             return tokens;
         }

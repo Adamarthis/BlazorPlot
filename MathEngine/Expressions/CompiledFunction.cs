@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using System.Transactions;
 
 namespace MathEngine.Expressions
 {

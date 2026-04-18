@@ -49,6 +49,13 @@ namespace MathEngine
                 }
                 else if (Current.Type == TokenType.Operator)
                 {
+                    bool isUnary = Current.Value == "-" && (_position == 0 || _tokens[_position - 1].Type == TokenType.LParenthesis || _tokens[_position - 1].Type == TokenType.Operator);
+                    
+                    if (isUnary )
+                    {
+                        nodes.Push(new NumberNode(0));
+                    }
+
                     while (operators.Count > 0 && operators.Peek().Type == TokenType.Operator && OperatorRegistry.GetPrecedence(operators.Peek().Value) >= OperatorRegistry.GetPrecedence(Current.Value))
                     {
                         ProcessOperator(nodes, operators.Pop());

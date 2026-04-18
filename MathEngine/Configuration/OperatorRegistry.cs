@@ -27,12 +27,12 @@ namespace MathEngine.Configuration
             Register("^", 3, Expression.Power);
         }
 
-        public static void Register(string symbol, int precendence, Func<Expression, Expression, Expression> compiler)
+        public static void Register(string symbol, int precedence, Func<Expression, Expression, Expression> compiler)
         {
             _operators[symbol] = new OperatorDef
             {
                 Symbol = symbol,
-                Precedence = precendence,
+                Precedence = precedence,
                 Compiler = compiler
             };
         }

@@ -98,4 +98,18 @@ public class EngineTests
         var ex = Assert.Throws<Exception>(() => Evaluate("magic(5)"));
         Assert.That(ex.Message, Does.Contain("is not supported"));
     }
+
+    [Test]
+    public void EmptyExpressionThrowsExceptionTest()
+    {
+        var ex = Assert.Throws<Exception>(() => Evaluate("    "));
+        Assert.That(ex.Message, Does.Contain("Empty expression"));
+    }
+
+    [Test]
+    public void MismatchedParenthesesTest()
+    {
+        var ex = Assert.Throws<Exception>(() => Evaluate("(2+ 2"));
+        Assert.That(ex.Message, Does.Contain("Mismatched parentheses"));
+    }
 }

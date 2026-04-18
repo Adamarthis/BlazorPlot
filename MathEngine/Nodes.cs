@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MathEngine.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -22,15 +23,7 @@ namespace MathEngine.Expressions
             var leftExpr = left.ToLinqExpression(xParam);
             var rightExpr = right.ToLinqExpression(xParam);
 
-            return op switch
-            {
-                "+" => Expression.Add(leftExpr, rightExpr),
-                "-" => Expression.Subtract(leftExpr, rightExpr),
-                "*" => Expression.Multiply(leftExpr, rightExpr),
-                "/" => Expression.Divide(leftExpr, rightExpr),
-                "^" => Expression.Power(leftExpr, rightExpr),
-                _ => throw new Exception($"Unsupported operator: {op}")
-            };
+            return OperatorRegistry.Compile(op, leftExpr, rightExpr);
         }
         
     }

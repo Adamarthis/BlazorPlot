@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using MathEngine.Configuration;
+using System.Text;
 
 namespace MathEngine.Lexing
 {
@@ -32,7 +33,7 @@ namespace MathEngine.Lexing
                 {
                     tokens.Add(ReadIdentifier());
                 }
-                else if ("+-*/^".Contains(c))
+                else if (OperatorRegistry.IsOperatorChar(c))
                 {
                     tokens.Add(new Token(TokenType.Operator, c.ToString()));
                     Advance();

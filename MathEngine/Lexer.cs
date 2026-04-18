@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace MathEngine
+namespace MathEngine.Lexing
 {
     public class Lexer
     {

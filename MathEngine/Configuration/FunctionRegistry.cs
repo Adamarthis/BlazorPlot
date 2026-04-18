@@ -32,7 +32,7 @@ namespace MathEngine.Configuration
             _functions[functionName.ToLowerInvariant()] = method;
         }
 
-        public static bool isFunction(string name) => _functions.ContainsKey(name.ToLowerInvariant());
+        public static bool IsFunction(string name) => _functions.ContainsKey(name.ToLowerInvariant());
 
         public static Expression Compile(string name, Expression argument) 
         {

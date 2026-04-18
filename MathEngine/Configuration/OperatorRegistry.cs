@@ -41,6 +41,10 @@ namespace MathEngine.Configuration
 
         public static bool IsOperatorChar(char c) => _operators.Keys.Any(k => k.StartsWith(c));
 
+        public static int GetPrecedence(string  symbol)
+        {
+            return _operators.TryGetValue(symbol, out var def) ? def.Precedence : 0;
+        }
         public static Expression Compile(string symbol, Expression left, Expression right)
         {
             if (_operators.TryGetValue(symbol, out var def))

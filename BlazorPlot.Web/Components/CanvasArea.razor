@@ -1,31 +1,63 @@
-﻿@inject IJSRuntime JSRuntime
+﻿@using BlazorPlot.Web.Services
+@inject IJSRuntime JSRuntime
+@inject CalculatorState State
+@inject ViewportManager Viewport
 
-<canvas @ref="_canvasRef" width="800" height="600" style="border: 1px solid #ccc; background: white;"></canvas>
+<canvas @ref="_canvasRef" width="800" height="600" style="width: 100%; height: 100%; display: block;"></canvas>
 
 @code {
     private ElementReference _canvasRef;
+    private bool _isReady = false;
+
+    protected override void OnInitialized()
+    {
+        State.OnChange += async () => {
+            if (_isReady) await RenderGraphsAsync();
+        };
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Тестовый рендер параболы для проверки моста JS
-            await TestRenderAsync();
+            _isReady = true;
+            Viewport.CanvasWidth = 800; 
+            Viewport.CanvasHeight = 600;
+            await RenderGraphsAsync();
         }
     }
 
-    private async Task TestRenderAsync()
+    private async Task RenderGraphsAsync()
     {
-        double[] points = new double[2000];
-        int index = 0;
-        for (int i = 0; i < 1000; i++)
-        {
-            double x = i;
-            double y = (x - 400) * (x - 400) / 100 + 300; // Парабола
-            points[index++] = x;
-            points[index++] = y;
-        }
+        await JSRuntime.InvokeVoidAsync("canvasRenderer.clear", _canvasRef);
 
-        await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, points);
+        var bounds = Viewport.GetVisibleMathBounds();
+        
+        double stepMathX = Viewport.UnitsPerPixel; 
+
+        foreach (var eq in State.Equations.Where(e => e.IsVisible && !e.HasError && e.Function != null))
+        {
+            int pointsCount = (int)((bounds.XMax - bounds.XMin) / stepMathX) + 1;
+            if (pointsCount <= 0 || pointsCount > 20000) continue;
+
+            double[] points = new double[pointsCount * 2]; // X и Y
+            int index = 0;
+
+            for (double mathX = bounds.XMin; mathX <= bounds.XMax; mathX += stepMathX)
+            {
+                double mathY = eq.Function!.Evaluate(mathX);
+
+                if (double.IsNaN(mathY) || double.IsInfinity(mathY)) continue;
+
+                var (px, py) = Viewport.MathToScreen(mathX, mathY);
+
+                if (index < points.Length)
+                {
+                    points[index++] = px;
+                    points[index++] = py;
+                }
+            }
+            await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, points, eq.Color);
+        }
     }
 }

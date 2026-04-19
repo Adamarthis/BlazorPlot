@@ -65,7 +65,8 @@
                 }
             }
 
-            await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, points, eq.Color);
+            var validPoints = points.Take(index).ToArray();
+            await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, validPoints, eq.Color);
         }
     }
 }

@@ -9,101 +9,85 @@
         const ctx = canvas.getContext('2d');
         
         const visibleWidth = width * uPP;
-
-        const magnitude = Math.pow(10, Math.floor(Math.log10(visibleWidth / 5)));
-        let step = magnitude;
-
-        if (visibleWidth / step > 15) step *= 5;
-        else if (visibleWidth / step > 8) step *= 2;
-
-        if (step <= 0) step = 1;
-
-        ctx.font = '12px monospace';
-        ctx.fillStyle = '#666';
+        const rawStep = visibleWidth / 10;
         
-        // net
-        ctx.beginPath();
-        ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 1;
+        const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+        const norm = rawStep / magnitude;
+        
+        let majorStep;
+        if (norm < 1.5) majorStep = 1 * magnitude;
+        else if (norm < 3.5) majorStep = 2 * magnitude;
+        else if (norm < 7.5) majorStep = 5 * magnitude;
+        else majorStep = 10 * magnitude;
+
+        const minorStep = majorStep / 5;
+
+        const minX = centerX - (width / 2) * uPP;
+        const maxX = centerX + (width / 2) * uPP;
+        const minY = centerY - (height / 2) * uPP;
+        const maxY = centerY + (height / 2) * uPP;
+
+        ctx.font = '12px Segoe UI, sans-serif';
+        ctx.fillStyle = '#555';
 
         const xAxisY = (height / 2) + centerY / uPP;
         const yAxisX = (width / 2) - centerX / uPP;
-       
-        const startX = Math.floor((centerX - (width / 2) * uPP) / step) * step;
-        const endX = Math.ceil((centerX + (width / 2) * uPP) / step) * step;
-       
+        
+        let textY = Math.max(5, Math.min(xAxisY + 5, height - 20));
+        let textX = Math.max(30, Math.min(yAxisX - 8, width - 10));
+
+        const formatLabel = (val) => parseFloat(val.toPrecision(12)).toString();
+
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-
-        let textY = xAxisY + 5;
-        if (textY < 5) textY = 5;
-        if (textY > height - 20) textY = height - 20;
-
-        for (let x = startX; x <= endX; x+=step) {
+        const startX = Math.floor(minX / minorStep) * minorStep;
+        
+        for (let x = startX; x <= maxX; x += minorStep) {
             const px = (width / 2) + (x - centerX) / uPP;
-            
+            const isMajor = Math.abs(Math.round(x / majorStep) * majorStep - x) < minorStep * 0.1;
+
+            ctx.beginPath();
+            ctx.strokeStyle = isMajor ? '#cccccc' : '#f0f0f0';
+            ctx.lineWidth = isMajor ? 1.5 : 1;
             ctx.moveTo(px, 0);
             ctx.lineTo(px, height);
+            ctx.stroke();
 
-            if (Math.abs(x) > 1e-9) {
-                let label = parseFloat(x.toPrecision(12)).toString();
-                ctx.fillText(label, px, textY);
+            if (isMajor && Math.abs(x) > 1e-9) {
+                ctx.fillText(formatLabel(x), px, textY);
             }
         }
-
-        const startY = Math.floor((centerY - (height / 2) * uPP) / step) * step;
-        const endY = Math.ceil((centerY + (height / 2) * uPP) / step) * step;
 
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
+        const startY = Math.floor(minY / minorStep) * minorStep;
 
-        let textX = yAxisX -5;
-        if (textX < 30) textX = 30;
-        if (textX > width - 5) textX = width - 5;
-
-        for (let y = startY; y <= endY; y+=step) {
+        for (let y = startY; y <= maxY; y += minorStep) {
             const py = (height / 2) - (y - centerY) / uPP;
-            
+            const isMajor = Math.abs(Math.round(y / majorStep) * majorStep - y) < minorStep * 0.1;
+
+            ctx.beginPath();
+            ctx.strokeStyle = isMajor ? '#cccccc' : '#f0f0f0';
+            ctx.lineWidth = isMajor ? 1.5 : 1;
             ctx.moveTo(0, py);
             ctx.lineTo(width, py);
+            ctx.stroke();
 
-            if (Math.abs(y) > 1e-9) {
-                let label = parseFloat(y.toPrecision(12)).toString();
-                ctx.fillText(label, textX, py);
+            if (isMajor && Math.abs(y) > 1e-9) {
+                ctx.fillText(formatLabel(y), textX, py);
             }
         }
 
-        ctx.stroke();
-
-        // main OX OY
         ctx.beginPath();
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1.5;
-
-        if (xAxisY >=0 && xAxisY <= height) {
-            ctx.moveTo(0, xAxisY);
-            ctx.lineTo(width, xAxisY);
-        }
-
-        if (yAxisX >=0 && yAxisX <= width) {
-            ctx.moveTo(yAxisX, 0);
-            ctx.lineTo(yAxisX, height);
-        }
+        if (xAxisY >= 0 && xAxisY <= height) { ctx.moveTo(0, xAxisY); ctx.lineTo(width, xAxisY); }
+        if (yAxisX >= 0 && yAxisX <= width) { ctx.moveTo(yAxisX, 0); ctx.lineTo(yAxisX, height); }
         ctx.stroke();
 
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
         ctx.fillText('0', textX, textY);
-        
-        const axisY = (height / 2) + centerY / uPP;
-        ctx.moveTo(0, axisY);
-        ctx.lineTo(width, axisY);
-
-        const axisX = (width / 2) - centerX / uPP;
-        ctx.moveTo(axisX, 0);
-        ctx.lineTo(axisX, height);
-
-        ctx.stroke();
     },
 
     drawGraph: function (canvas, pointsData, color) {

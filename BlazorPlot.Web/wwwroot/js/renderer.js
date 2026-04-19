@@ -118,4 +118,27 @@
         }
         ctx.stroke();
     }
+
+    drawImplicit: function (canvas, pointsData, color) {
+        if (!canvas || !pointsData) return;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = color;
+
+        for (let i = 0; i < pointsData.length; i+= 2) {
+            ctx.fillRect(pointsData[i] - 1, pointsData[i + 1] - 1, 2, 2);
+        }
+    },
+
+    drawPoint: function (canvas, px, py, color) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(px, py, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
 };

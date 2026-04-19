@@ -117,7 +117,7 @@
             }
         }
         ctx.stroke();
-    }
+    },
 
     drawImplicit: function (canvas, pointsData, color) {
         if (!canvas || !pointsData) return;

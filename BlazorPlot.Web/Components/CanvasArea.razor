@@ -105,28 +105,36 @@
             else if (eq.IsImplicit && eq.Function != null)
             {
                 int stepPx = 4; 
-                List<double> implicitPoints = new();
+                List<double> implicitSegments = new();
 
                 for (double py = 0; py < Viewport.CanvasHeight; py += stepPx)
                 {
                     for (double px = 0; px < Viewport.CanvasWidth; px += stepPx)
                     {
-                        var (mX1, mY1) = Viewport.ScreenToMath(px, py);
-                        var (mX2, mY2) = Viewport.ScreenToMath(px + stepPx, py);
-                        var (mX3, mY3) = Viewport.ScreenToMath(px, py + stepPx);
+                        var (mX1, mY1) = Viewport.ScreenToMath(px, py);                         // Точка (0,0) в квадрате
+                        var (mX2, mY2) = Viewport.ScreenToMath(px + stepPx, py);                // Точка (1,0)
+                        var (mX3, mY3) = Viewport.ScreenToMath(px + stepPx, py + stepPx);       // Точка (1,1)
+                        var (mX4, mY4) = Viewport.ScreenToMath(px, py + stepPx);                // Точка (0,1)
 
                         double v1 = eq.Function.Evaluate(mX1, mY1);
-                        double v2 = eq.Function.Evaluate(mX2, mY1);
-                        double v3 = eq.Function.Evaluate(mX1, mY3);
+                        double v2 = eq.Function.Evaluate(mX2, mY2);
+                        double v3 = eq.Function.Evaluate(mX3, mY3);
+                        double v4 = eq.Function.Evaluate(mX4, mY4);
 
-                        if (v1 * v2 <= 0 || v1 * v3 <= 0)
-                        {
-                            implicitPoints.Add(px);
-                            implicitPoints.Add(py);
+                        List<double> pts = new();
+
+                        if (v1 * v2 <= 0 && v1 != v2) { double t = v1 / (v1 - v2); pts.Add(px + t * stepPx); pts.Add(py); }
+                        if (v2 * v3 <= 0 && v2 != v3) { double t = v2 / (v2 - v3); pts.Add(px + stepPx); pts.Add(py + t * stepPx); }
+                        if (v3 * v4 <= 0 && v3 != v4) { double t = v3 / (v3 - v4); pts.Add(px + (1-t) * stepPx); pts.Add(py + stepPx); }
+                        if (v4 * v1 <= 0 && v4 != v1) { double t = v4 / (v4 - v1); pts.Add(px); pts.Add(py + (1-t) * stepPx); }
+
+                        if (pts.Count >= 4) {
+                            implicitSegments.Add(pts[0]); implicitSegments.Add(pts[1]);
+                            implicitSegments.Add(pts[2]); implicitSegments.Add(pts[3]);
                         }
                     }
                 }
-                await JSRuntime.InvokeVoidAsync("canvasRenderer.drawImplicit", _canvasRef, implicitPoints.ToArray(), eq.Color);
+                await JSRuntime.InvokeVoidAsync("canvasRenderer.drawImplicit", _canvasRef, implicitSegments.ToArray(), eq.Color);
             }
             else if (eq.Function != null)
             {

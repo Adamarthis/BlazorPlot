@@ -45,7 +45,7 @@ namespace MathEngine.Parsing
                 }
                 else if (Current.Type == TokenType.Variable)
                 {
-                    nodes.Push(new VariableNode());
+                    nodes.Push(new VariableNode(Current.Value));
                     Advance();
                 }
                 else if (Current.Type == TokenType.Operator)

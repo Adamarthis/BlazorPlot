@@ -28,7 +28,7 @@
         const maxY = centerY + (height / 2) * uPP;
 
         ctx.font = '12px Segoe UI, sans-serif';
-        ctx.fillStyle = '#555';
+        ctx.fillStyle = '#000000';
 
         const xAxisY = (height / 2) + centerY / uPP;
         const yAxisX = (width / 2) - centerX / uPP;
@@ -47,7 +47,7 @@
             const isMajor = Math.abs(Math.round(x / majorStep) * majorStep - x) < minorStep * 0.1;
 
             ctx.beginPath();
-            ctx.strokeStyle = isMajor ? '#cccccc' : '#f0f0f0';
+            ctx.strokeStyle = isMajor ? '#8c8c8c' : '#cccccc';
             ctx.lineWidth = isMajor ? 1.5 : 1;
             ctx.moveTo(px, 0);
             ctx.lineTo(px, height);
@@ -67,7 +67,7 @@
             const isMajor = Math.abs(Math.round(y / majorStep) * majorStep - y) < minorStep * 0.1;
 
             ctx.beginPath();
-            ctx.strokeStyle = isMajor ? '#cccccc' : '#f0f0f0';
+            ctx.strokeStyle = isMajor ? '#8c8c8c' : '#cccccc';
             ctx.lineWidth = isMajor ? 1.5 : 1;
             ctx.moveTo(0, py);
             ctx.lineTo(width, py);

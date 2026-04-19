@@ -24,7 +24,7 @@
         public (double mathX, double mathY) ScreenToMath(double px, double py)
         {
             double dx = px - (CanvasWidth / 2);
-            double dy = (CanvasWidth / 2) - py;
+            double dy = (CanvasHeight / 2) - py;
 
             double mathX = CenterX + (dx * UnitsPerPixel);
             double mathY = CenterY + (dy * UnitsPerPixel);

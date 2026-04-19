@@ -1,7 +1,7 @@
 ﻿window.canvasRenderer = {
 	drawGraph: function (canvas, pointsData) {
 		if (!canvas) return;
-		const ctx = camvas.getContext('2d');
+		const ctx = canvas.getContext('2d');
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.beginPath();

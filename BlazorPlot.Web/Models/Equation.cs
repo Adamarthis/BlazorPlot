@@ -11,6 +11,8 @@ namespace BlazorPlot.Web.Models
         public bool IsVisible { get; set; } = true;
         public bool HasError { get; set; } = false;
         public string ErrorMessage { get; set; } = string.Empty;
-
+        public bool IsImplicit { get; set; } = false;
+        public bool IsPoint {  get; set; } = false;
+        public (double X, double Y)? PointCoordinates { get; set; }
     }
 }

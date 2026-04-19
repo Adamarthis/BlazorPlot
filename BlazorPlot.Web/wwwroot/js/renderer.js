@@ -5,7 +5,7 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     },
 
-    drawGraph: function (canvas, centerX, centerY, uPP, width, height) {
+    drawAxes: function (canvas, centerX, centerY, uPP, width, height) {
         const ctx = canvas.getContext('2d');
         
         // net
@@ -24,10 +24,10 @@
         }
 
         const startY = Math.floor((centerY - (height / 2) * uPP) / step) * step;
-        const endY = Math.floor((centerY + (height / 2) * uPP) / step) * step;
+        const endY = Math.ceil((centerY + (height / 2) * uPP) / step) * step;
 
         for (let y = startY; y <= endY; y+=step) {
-            const py = (height / 2) + (y - centerY) / uPP;
+            const py = (height / 2) - (y - centerY) / uPP;
             ctx.moveTo(0, py);
             ctx.lineTo(width, py);
         }
@@ -48,7 +48,7 @@
         ctx.lineTo(axisX, height);
 
         ctx.stroke();
-        },
+    },
 
     drawGraph: function (canvas, pointsData, color) {
         if (!canvas || !pointsData || pointsData.length < 4) return;
@@ -59,23 +59,23 @@
         ctx.lineWidth = 2;
         ctx.lineJoin = 'round';
 
-        let isFirstPoint = true;
+        let started = false;
 
         for (let i = 0; i < pointsData.length; i += 2) {
             const x = pointsData[i];
             const y = pointsData[i + 1];
 
-            if (y > -10000 && y < 10000) {
-                if (isFirstPoint) {
+            if (y > -10000 && y < 10000 && x > -10000 && x < 10000) {
+                if (!started) {
                     ctx.moveTo(x, y);
-                    isFirstPoint = false;
+                    started = true;
                 } else {
                     ctx.lineTo(x, y);
                 }
             } else {
-                isFirstPoint = true;
+                started = false;
             }
         }
         ctx.stroke();
     }
-}
+};

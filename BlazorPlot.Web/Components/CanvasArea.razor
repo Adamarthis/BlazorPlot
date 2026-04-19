@@ -16,23 +16,32 @@
 @code {
     private ElementReference _canvasRef;
     private bool _isReady = false;
+    private bool _isZooming = false;
+    private CancellationTokenSource? _zoomDebounceCts;
 
     private async Task HandleWheel(Microsoft.AspNetCore.Components.Web.WheelEventArgs e)
     {
-        double zoomFactor = 1.05;
+        _isZooming = true;
 
-        if (e.DeltaY > 0)
-        {
-            Viewport.UnitsPerPixel *= zoomFactor;
-        } else if (e.DeltaY < 0)
-        {
-            Viewport.UnitsPerPixel /= zoomFactor;
-        }
+        double zoomFactor = e.DeltaY > 0 ? 1.05 : 0.95;
 
+        Viewport.UnitsPerPixel *= zoomFactor;
         if (Viewport.UnitsPerPixel < 0.0001) Viewport.UnitsPerPixel = 0.0001;
         if (Viewport.UnitsPerPixel > 100) Viewport.UnitsPerPixel = 100;
 
         await RenderGraphsAsync();
+
+        _zoomDebounceCts?.Cancel();
+        _zoomDebounceCts = new CancellationTokenSource();
+        
+        try 
+        {
+            await Task.Delay(200, _zoomDebounceCts.Token);
+
+            _isZooming = false;
+            await RenderGraphsAsync();
+        }
+        catch (TaskCanceledException) {}
     }
 
     private bool _isDragging = false;
@@ -105,7 +114,7 @@
             }
             else if (eq.IsImplicit && eq.Function != null)
             {
-                int stepPx = _isDragging ? 16 : 4; // megaoptimized
+                int stepPx = (_isDragging || _isZooming) ? 16 : 4; // megaoptimized
                 List<double> implicitSegments = new();
 
                 for (double py = 0; py < Viewport.CanvasHeight; py += stepPx)

@@ -3,11 +3,33 @@
 @inject CalculatorState State
 @inject ViewportManager Viewport
 
-<canvas @ref="_canvasRef" width="800" height="600" style="width: 100%; height: 100%; display: block;"></canvas>
+<canvas @ref="_canvasRef" 
+        width="800" height="600" 
+        style="width: 100%; height: 100%; display: block; cursor: crosshair;"
+        @onwheel="HandleWheel">
+</canvas>
 
 @code {
     private ElementReference _canvasRef;
     private bool _isReady = false;
+
+    private async Task HandleWheel(Microsoft.AspNetCore.Components.Web.WheelEventArgs e)
+    {
+        double zoomFactor = 1.1;
+
+        if (e.DeltaY > 0)
+        {
+            Viewport.UnitsPerPixel *= zoomFactor;
+        } else if (e.DeltaY < 0)
+        {
+            Viewport.UnitsPerPixel /= zoomFactor;
+        }
+
+        if (Viewport.UnitsPerPixel < 0.0001) Viewport.UnitsPerPixel = 0.0001;
+        if (Viewport.UnitsPerPixel > 100) Viewport.UnitsPerPixel = 100;
+
+        await RenderGraphsAsync();
+    }
 
     protected override void OnInitialized()
     {

@@ -1,0 +1,29 @@
+﻿@using BlazorPlot.Web.Models
+@using BlazorPlot.Web.Services
+@inject CalculatorState State
+
+<div style="border-left: 4px solid @Equation.Color; padding: 10px; margin-bottom: 10px; background: #f9f9f9;">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <span style="font-family: monospace; font-weight: bold;">y =</span>
+        <input type="text" 
+               value="@Equation.ExpressionText" 
+               @oninput="OnTextChanged" 
+               placeholder="Например: sin(x)" 
+               style="flex: 1; border: none; border-bottom: 1px solid #ccc; background: transparent; outline: none; font-family: monospace;" />
+        <button @onclick="() => State.RemoveEquation(Equation.Id)" style="color: red; border: none; background: none; cursor: pointer;">✕</button>
+    </div>
+    
+    @if (Equation.HasError)
+    {
+        <div style="color: red; font-size: 0.8rem; margin-top: 5px;">@Equation.ErrorMessage</div>
+    }
+</div>
+
+@code {
+    [Parameter] public Equation Equation { get; set; } = null!;
+
+    private void OnTextChanged(ChangeEventArgs e)
+    {
+        State.UpdateEquationText(Equation.Id, e.Value?.ToString() ?? "");
+    }
+}

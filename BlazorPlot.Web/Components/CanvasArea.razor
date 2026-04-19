@@ -62,9 +62,10 @@
         await RenderGraphsAsync();
     }
 
-    private void OnMouseUp(Microsoft.AspNetCore.Components.Web.MouseEventArgs e) 
+    private async void OnMouseUp(Microsoft.AspNetCore.Components.Web.MouseEventArgs e) 
     {
         _isDragging = false;
+        await RenderGraphsAsync();
     }
 
     protected override void OnInitialized()
@@ -104,7 +105,7 @@
             }
             else if (eq.IsImplicit && eq.Function != null)
             {
-                int stepPx = 4; 
+                int stepPx = _isDragging ? 16 : 4; // megaoptimized
                 List<double> implicitSegments = new();
 
                 for (double py = 0; py < Viewport.CanvasHeight; py += stepPx)
@@ -128,7 +129,8 @@
                         if (v3 * v4 <= 0 && v3 != v4) { double t = v3 / (v3 - v4); pts.Add(px + (1-t) * stepPx); pts.Add(py + stepPx); }
                         if (v4 * v1 <= 0 && v4 != v1) { double t = v4 / (v4 - v1); pts.Add(px); pts.Add(py + (1-t) * stepPx); }
 
-                        if (pts.Count >= 4) {
+                        if (pts.Count >= 4) 
+                        {
                             implicitSegments.Add(pts[0]); implicitSegments.Add(pts[1]);
                             implicitSegments.Add(pts[2]); implicitSegments.Add(pts[3]);
                         }
@@ -151,10 +153,13 @@
                     if (double.IsNaN(mathY) || double.IsInfinity(mathY)) continue;
 
                     var (px, py) = Viewport.MathToScreen(mathX, mathY);
-                    if (index < points.Length) { points[index++] = px; points[index++] = py; }
+                    if (index < points.Length) 
+                    { 
+                    points[index++] = px; points[index++] = py; 
+                    }
                 }
-            await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, points.Take(index).ToArray(), eq.Color);
+                await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, points.Take(index).ToArray(), eq.Color);
+            }
         }
     }
-}
 }

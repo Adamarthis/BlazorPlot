@@ -1,23 +1,36 @@
 ﻿window.canvasRenderer = {
-	drawGraph: function (canvas, pointsData) {
-		if (!canvas) return;
-		const ctx = canvas.getContext('2d');
+    clear: function (canvas) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    },
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.beginPath();
-		ctx.strokeStyle = '#0078D7';
-		ctx.lineWidth = 2;
+    drawGraph: function (canvas, pointsData, color) {
+        if (!canvas || !pointsData || pointsData.length === 0) return;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
 
-		for (let i = 0; i < pointsData.length; i += 2) {
-			const x = pointsData[i];
-			const y = pointsData[i + 1];
+        let isFirstPoint = true;
 
-			if (i === 0) {
-				ctx.moveTo(x, y);
-			} else {
-				ctx.lineTo(x, y);
-			}
-		}
-		ctx.stroke();
-	}
+        for (let i = 0; i < pointsData.length; i += 2) {
+            const x = pointsData[i];
+            const y = pointsData[i + 1];
+
+            if (y > -10000 && y < 10000) {
+                if (isFirstPoint) {
+                    ctx.moveTo(x, y);
+                    isFirstPoint = false;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            } else {
+                isFirstPoint = true;
+            }
+        }
+        ctx.stroke();
+    }
 };

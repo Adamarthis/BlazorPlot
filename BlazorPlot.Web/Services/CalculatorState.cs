@@ -25,31 +25,65 @@ namespace BlazorPlot.Web.Services
             if (eq == null) return;
 
             eq.ExpressionText = newText;
+
+            eq.IsImplicit = false;
+            eq.IsPoint = false;
+            eq.PointCoordinates = null;
+            eq.Function = null;
+
             if (string.IsNullOrWhiteSpace(newText))
             {
-                eq.Function = null;
-                eq.HasError  = false;
+                eq.HasError = false;
+                eq.ErrorMessage = "";
+                NotifyStateChanged();
+                return;
+            }
+            try
+            {
+                string mathText = newText.Trim().ToLowerInvariant();
+
+                if (mathText.StartsWith("(") && mathText.EndsWith(")") && mathText.Contains(","))
+                {
+                    var inner = mathText.Substring(1, mathText.Length - 2);
+                    var parts = inner.Split(',');
+
+                    if (parts.Length == 2)
+                    {
+                        // make it more unreadable later
+                        var funcX = new CompiledFunction(new Parser(new Lexer(parts[0]).Tokenize()).Parse());
+                        var funcY = new CompiledFunction(new Parser(new Lexer(parts[1]).Tokenize()).Parse());
+
+                        eq.PointCoordinates = (funcX.Evaluate(0), funcY.Evaluate(0));
+                        eq.IsPoint = true;
+                    }
+                    else throw new Exception("Expected (X, Y) point format.");
+                }
+                else
+                {
+                    if (mathText.StartsWith("y=") || mathText.StartsWith("y ="))
+                    {
+                        mathText = mathText.Substring(mathText.IndexOf('=') + 1).Trim();
+                    }
+                    else if (mathText.Contains("="))
+                    {
+                        var parts = mathText.Split('=');
+                        if (parts.Length == 2)
+                        {
+                            mathText = $"{parts[0]} - ({parts[1]})");
+                            eq.IsImplicit = true;
+                        }
+                        else throw new Exception("Too many '='");
+                    }
+                    var rootNode = new Parser(new Lexer(mathText).Tokenize()).Parse();
+                    eq.Function = new CompiledFunction(rootNode);
+                }
+                eq.HasError = false;
                 eq.ErrorMessage = "";
             }
-            else
+            catch (Exception e)
             {
-                try
-                {
-                    var lexer = new Lexer(newText);
-                    var tokens = lexer.Tokenize();
-                    var parser = new Parser(tokens);
-                    var rootNode = parser.Parse();
-
-                    eq.Function = new CompiledFunction(rootNode);
-                    eq.HasError = false;
-                    eq.ErrorMessage = "";
-                }
-                catch (Exception ex)
-                {
-                    eq.Function = null;
-                    eq.HasError = true;
-                    eq.ErrorMessage = ex.Message;
-                }
+                eq.HasError = true;
+                eq.ErrorMessage = e.Message;
             }
             NotifyStateChanged();
         }

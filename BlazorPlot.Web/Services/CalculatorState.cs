@@ -69,7 +69,7 @@ namespace BlazorPlot.Web.Services
                         var parts = mathText.Split('=');
                         if (parts.Length == 2)
                         {
-                            mathText = $"{parts[0]} - ({parts[1]})");
+                            mathText = $"{parts[0]} - ({parts[1]})";
                             eq.IsImplicit = true;
                         }
                         else throw new Exception("Too many '='");

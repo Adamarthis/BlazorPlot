@@ -22,10 +22,8 @@ namespace BlazorPlot.Web.Services
         public void UpdateEquationText(Guid id, string newText)
         {
             var eq = Equations.FirstOrDefault(e => e.Id == id);
-            if (eq == null)
-            {
-                return;
-            }
+            if (eq == null) return;
+
             eq.ExpressionText = newText;
             if (string.IsNullOrWhiteSpace(newText))
             {

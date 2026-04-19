@@ -87,44 +87,66 @@
 
     private async Task RenderGraphsAsync()
     {
-        await JSRuntime.InvokeVoidAsync("canvasRenderer.clear", _canvasRef);
+        if (!_isReady) return;
 
-        await JSRuntime.InvokeVoidAsync("canvasRenderer.drawAxes", 
-            _canvasRef, 
-            Viewport.CenterX, 
-            Viewport.CenterY, 
-            Viewport.UnitsPerPixel, 
-            Viewport.CanvasWidth, 
-            Viewport.CanvasHeight);
+        await JSRuntime.InvokeVoidAsync("canvasRenderer.clear", _canvasRef);
+        await JSRuntime.InvokeVoidAsync("canvasRenderer.drawAxes", _canvasRef, Viewport.CenterX, Viewport.CenterY, Viewport.UnitsPerPixel, Viewport.CanvasWidth, Viewport.CanvasHeight);
 
         var bounds = Viewport.GetVisibleMathBounds();
-        double stepMathX = Viewport.UnitsPerPixel; 
+        double stepMathX = Viewport.UnitsPerPixel;
 
-        foreach (var eq in State.Equations.Where(e => e.IsVisible && !e.HasError && e.Function != null))
+        foreach (var eq in State.Equations.Where(e => e.IsVisible && !e.HasError))
         {
-            int pointsCount = (int)((bounds.XMax - bounds.XMin) / stepMathX) + 1;
-            if (pointsCount <= 0 || pointsCount > 20000) continue;
-
-            double[] points = new double[pointsCount * 2];
-            int index = 0;
-
-            for (double mathX = bounds.XMin; mathX <= bounds.XMax; mathX += stepMathX)
+            if (eq.IsPoint && eq.PointCoordinates.HasValue)
             {
-                double mathY = eq.Function!.Evaluate(mathX);
-
-                if (double.IsNaN(mathY) || double.IsInfinity(mathY)) continue;
-
-                var (px, py) = Viewport.MathToScreen(mathX, mathY);
-
-                if (index < points.Length)
-                {
-                    points[index++] = px;
-                    points[index++] = py;
-                }
+                var (px, py) = Viewport.MathToScreen(eq.PointCoordinates.Value.X, eq.PointCoordinates.Value.Y);
+                await JSRuntime.InvokeVoidAsync("canvasRenderer.drawPoint", _canvasRef, px, py, eq.Color);
             }
+            else if (eq.IsImplicit && eq.Function != null)
+            {
+                int stepPx = 4; 
+                List<double> implicitPoints = new();
 
-            var validPoints = points.Take(index).ToArray();
-            await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, validPoints, eq.Color);
+                for (double py = 0; py < Viewport.CanvasHeight; py += stepPx)
+                {
+                    for (double px = 0; px < Viewport.CanvasWidth; px += stepPx)
+                    {
+                        var (mX1, mY1) = Viewport.ScreenToMath(px, py);
+                        var (mX2, mY2) = Viewport.ScreenToMath(px + stepPx, py);
+                        var (mX3, mY3) = Viewport.ScreenToMath(px, py + stepPx);
+
+                        double v1 = eq.Function.Evaluate(mX1, mY1);
+                        double v2 = eq.Function.Evaluate(mX2, mY1);
+                        double v3 = eq.Function.Evaluate(mX1, mY3);
+
+                        if (v1 * v2 <= 0 || v1 * v3 <= 0)
+                        {
+                            implicitPoints.Add(px);
+                            implicitPoints.Add(py);
+                        }
+                    }
+                }
+                await JSRuntime.InvokeVoidAsync("canvasRenderer.drawImplicit", _canvasRef, implicitPoints.ToArray(), eq.Color);
+            }
+            else if (eq.Function != null)
+            {
+                int pointsCount = (int)((bounds.XMax - bounds.XMin) / stepMathX) + 1;
+                if (pointsCount <= 0 || pointsCount > 10000) continue;
+
+                double[] points = new double[pointsCount * 2];
+                int index = 0;
+
+                for (double mathX = bounds.XMin; mathX <= bounds.XMax; mathX += stepMathX)
+                {
+                    double mathY = eq.Function.Evaluate(mathX, 0);
+
+                    if (double.IsNaN(mathY) || double.IsInfinity(mathY)) continue;
+
+                    var (px, py) = Viewport.MathToScreen(mathX, mathY);
+                    if (index < points.Length) { points[index++] = px; points[index++] = py; }
+                }
+            await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, points.Take(index).ToArray(), eq.Color);
         }
     }
+}
 }

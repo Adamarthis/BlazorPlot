@@ -5,23 +5,22 @@ namespace MathEngine.Expressions
 {
     public class NumberNode(double value) : INode
     {
-        public Expression ToLinqExpression(ParameterExpression xParam) => Expression.Constant(value);
+        public Expression ToLinqExpression(ParameterExpression xParam, ParameterExpression yParam) => Expression.Constant(value);
     }
 
-    public class VariableNode : INode
+    public class VariableNode(string name) : INode
     {
-        public Expression ToLinqExpression(ParameterExpression xParam) => xParam;
+        public Expression ToLinqExpression(ParameterExpression xParam, ParameterExpression yParam)
+        {
+            return name.ToLowerInvariant() == "y" ? yParam : xParam;
+        }
     }
 
     public class  BinaryNode(INode left, INode right, string op) : INode
     {
-        public Expression ToLinqExpression(ParameterExpression xParam)
+        public Expression ToLinqExpression(ParameterExpression xParam, ParameterExpression yParam)
         {
-            var leftExpr = left.ToLinqExpression(xParam);
-            var rightExpr = right.ToLinqExpression(xParam);
-
-            return OperatorRegistry.Compile(op, leftExpr, rightExpr);
+            return OperatorRegistry.Compile(op, left.ToLinqExpression(xParam, yParam), right.ToLinqExpression(xParam, yParam));
         }
-        
     }
 }

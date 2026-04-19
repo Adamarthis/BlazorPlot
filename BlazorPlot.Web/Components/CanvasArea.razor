@@ -31,8 +31,15 @@
     {
         await JSRuntime.InvokeVoidAsync("canvasRenderer.clear", _canvasRef);
 
+        await JSRuntime.InvokeVoidAsync("canvasRenderer.drawAxes", 
+            _canvasRef, 
+            Viewport.CenterX, 
+            Viewport.CenterY, 
+            Viewport.UnitsPerPixel, 
+            Viewport.CanvasWidth, 
+            Viewport.CanvasHeight);
+
         var bounds = Viewport.GetVisibleMathBounds();
-        
         double stepMathX = Viewport.UnitsPerPixel; 
 
         foreach (var eq in State.Equations.Where(e => e.IsVisible && !e.HasError && e.Function != null))
@@ -40,7 +47,7 @@
             int pointsCount = (int)((bounds.XMax - bounds.XMin) / stepMathX) + 1;
             if (pointsCount <= 0 || pointsCount > 20000) continue;
 
-            double[] points = new double[pointsCount * 2]; // X и Y
+            double[] points = new double[pointsCount * 2];
             int index = 0;
 
             for (double mathX = bounds.XMin; mathX <= bounds.XMax; mathX += stepMathX)
@@ -57,6 +64,7 @@
                     points[index++] = py;
                 }
             }
+
             await JSRuntime.InvokeVoidAsync("canvasRenderer.drawGraph", _canvasRef, points, eq.Color);
         }
     }

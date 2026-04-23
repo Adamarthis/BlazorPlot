@@ -14,34 +14,38 @@
             @onmouseleave="OnMouseUp">
     </canvas>
 
-    @if (_hover != null)
+    @if (_activePoint != null)
     {
         <div style="position: absolute; 
-            left: @(_hover.ScreenX - 5)px; 
-            top: @(_hover.ScreenY - 5)px; 
-            width: 10px; height: 10px; 
-            background-color: @(_hover.Color); 
-            border: 2px solid white; 
-            border-radius: 50%; 
-            pointer-events: none; 
-            box-shadow: 0 0 4px rgba(0,0,0,0.3);
-            z-index: 10;">
+                    left: @(Math.Round(_activePoint.ScreenX - 5))px; 
+                    top: @(Math.Round(_activePoint.ScreenY - 5))px; 
+                    width: 10px; height: 10px; 
+                    background-color: @(_activePoint.Color); 
+                    border: 2px solid white; 
+                    border-radius: 50%; 
+                    pointer-events: none; 
+                    box-shadow: 0 0 6px rgba(0,0,0,0.5);
+                    z-index: 10;">
         </div>
         
         <div style="position: absolute; 
-            left: @(_hover.ScreenX + 15)px; 
-            top: @(_hover.ScreenY - 15)px; 
-            background: rgba(25, 25, 25, 0.9); 
-            color: white; 
-            padding: 4px 8px; 
-            border-radius: 4px; 
-            font-family: monospace; 
-            font-size: 13px; 
-            pointer-events: none; 
-            white-space: nowrap; 
-            z-index: 10;
-            @(_hover.IsImportant ? "font-weight: bold; border: 1px solid white;" : "")">
-            @Math.Round(_hover.MathX, 3), @Math.Round(_hover.MathY, 3)
+                    left: @(Math.Round(_activePoint.ScreenX + 15))px; 
+                    top: @(Math.Round(_activePoint.ScreenY - 15))px; 
+                    background: rgba(25, 25, 25, 0.9); 
+                    color: white; 
+                    padding: 4px 8px; 
+                    border-radius: 4px; 
+                    font-family: monospace; 
+                    font-size: 13px; 
+                    pointer-events: none; 
+                    white-space: nowrap; 
+                    z-index: 10;
+                    @(_activePoint.IsImportant ? "font-weight: bold; border: 1px solid white;" : "")">
+            @if (!string.IsNullOrEmpty(_activePoint.Label))
+            {
+                <span style="color: #FFD700; margin-right: 5px;">@_activePoint.Label:</span>
+            }
+            @Math.Round(_activePoint.MathX, 3), @Math.Round(_activePoint.MathY, 3)
         </div>
     }
 </div>
@@ -51,6 +55,21 @@
     private bool _isReady = false;
     private bool _isZooming = false;
     private CancellationTokenSource? _zoomDebounceCts;
+
+    private class TracePoint
+    {
+        public double ScreenX { get; set; }
+        public double ScreenY { get; set; }
+        public double MathX { get; set; }
+        public double MathY { get; set; }
+        public string Color { get; set; } = "";
+        public bool IsImportant { get; set; }
+        public string Label { get; set; } = "";
+    }
+
+    private TracePoint? _activePoint = null;
+    private double _clickStartX;
+    private double _clickStartY;
 
     private async Task HandleWheel(Microsoft.AspNetCore.Components.Web.WheelEventArgs e)
     {
@@ -86,11 +105,15 @@
         _isDragging = true;
         _lastMouseX = e.OffsetX;
         _lastMouseY = e.OffsetY;
+        _clickStartX = e.OffsetX;
+        _clickStartY = e.OffsetY;
     }
 
     private async Task OnMouseMove(Microsoft.AspNetCore.Components.Web.MouseEventArgs e) 
     {
         if (!_isDragging) return;
+
+        _activePoint = null; 
 
         double deltaX = e.OffsetX - _lastMouseX;
         double deltaY = e.OffsetY - _lastMouseY;
@@ -107,7 +130,117 @@
     private async void OnMouseUp(Microsoft.AspNetCore.Components.Web.MouseEventArgs e) 
     {
         _isDragging = false;
+
+        double moveDist = Math.Abs(e.OffsetX - _clickStartX) + Math.Abs(e.OffsetY - _clickStartY);
+        if (moveDist < 5) 
+        {
+            FindPointOnClick(e.OffsetX, e.OffsetY);
+        }
+
         await RenderGraphsAsync();
+    }
+
+    private void FindPointOnClick(double mousePx, double mousePy)
+    {
+        double radiusPx = 25;
+        TracePoint? bestPoint = null;
+        double minScore = double.MaxValue;
+
+        var explicitEqs = State.Equations.Where(eq => eq.IsVisible && !eq.HasError && !eq.IsImplicit && !eq.IsPoint && eq.Function != null).ToList();
+        var implicitEqs = State.Equations.Where(eq => eq.IsVisible && !eq.HasError && eq.IsImplicit && eq.Function != null).ToList();
+
+        double xAxisPy = Viewport.MathToScreen(0, 0).py;
+        double yAxisPx = Viewport.MathToScreen(0, 0).px;
+
+        for (double px = mousePx - radiusPx; px <= mousePx + radiusPx; px += 1)
+        {
+            var (mX, _) = Viewport.ScreenToMath(px, 0);
+
+            for (int i = 0; i < explicitEqs.Count; i++)
+            {
+                var eq1 = explicitEqs[i];
+                double mY1 = eq1.Function!.Evaluate(mX);
+                var (_, py1) = Viewport.MathToScreen(mX, mY1);
+
+                double distToMouse = Math.Sqrt(Math.Pow(px - mousePx, 2) + Math.Pow(py1 - mousePy, 2));
+                if (distToMouse > radiusPx) continue;
+
+                bool isImportant = false;
+                string label = "";
+                string color = eq1.Color;
+                double finalX = mX;
+                double finalY = mY1;
+
+                if (Math.Abs(px - yAxisPx) < 4) { finalX = 0; finalY = eq1.Function.Evaluate(0); isImportant = true; label = "Y-Intercept"; }
+                else if (Math.Abs(py1 - xAxisPy) < 4) { finalY = 0; isImportant = true; label = "Root"; }
+                else 
+                {
+                    for (int j = i + 1; j < explicitEqs.Count; j++)
+                    {
+                        var eq2 = explicitEqs[j];
+                        double mY2 = eq2.Function!.Evaluate(mX);
+                        var (_, py2) = Viewport.MathToScreen(mX, mY2);
+
+                        if (Math.Abs(py1 - py2) < 3) 
+                        {
+                            isImportant = true; label = "Intersection";
+                            color = "#FFFFFF"; 
+                            finalY = (mY1 + mY2) / 2.0; 
+                            break;
+                        }
+                    }
+                }
+
+                double score = isImportant ? distToMouse * 0.05 : distToMouse;
+
+                if (score < minScore)
+                {
+                    minScore = score;
+                    var (finalPx, finalPy) = Viewport.MathToScreen(finalX, finalY);
+                    bestPoint = new TracePoint { ScreenX = finalPx, ScreenY = finalPy, MathX = finalX, MathY = finalY, Color = color, IsImportant = isImportant, Label = label };
+                }
+            }
+        }
+        foreach (var eq in implicitEqs)
+        {
+            int step = 2;
+            
+            for (double py = mousePy - radiusPx; py <= mousePy + radiusPx; py += step)
+            {
+                for (double px = mousePx - radiusPx; px <= mousePx + radiusPx; px += step)
+                {
+                    var (mX1, mY1) = Viewport.ScreenToMath(px, py);
+                    var (mX2, _) = Viewport.ScreenToMath(px + step, py);
+                    var (_, mY3) = Viewport.ScreenToMath(px, py + step);
+
+                    double v1 = eq.Function!.Evaluate(mX1, mY1);
+                    double v2 = eq.Function.Evaluate(mX2, mY1);
+                    double v3 = eq.Function.Evaluate(mX1, mY3);
+
+                    if (v1 * v2 <= 0 || v1 * v3 <= 0)
+                    {
+                        double distToMouse = Math.Sqrt(Math.Pow(px - mousePx, 2) + Math.Pow(py - mousePy, 2));
+
+                        if (distToMouse < minScore)
+                        {
+                            minScore = distToMouse;
+                            bestPoint = new TracePoint {
+                                ScreenX = px, 
+                                ScreenY = py, 
+                                MathX = mX1, 
+                                MathY = mY1,
+                                Color = eq.Color, 
+                                IsImportant = false, 
+                                Label = ""
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        _activePoint = bestPoint;
+        StateHasChanged();
     }
 
     protected override void OnInitialized()
@@ -132,6 +265,10 @@
     {
         if (!_isReady) return;
 
+        var dims = await JSRuntime.InvokeAsync<double[]>("canvasRenderer.getDimensions", _canvasRef);
+        Viewport.CanvasWidth = dims[0];
+        Viewport.CanvasHeight = dims[1];
+
         await JSRuntime.InvokeVoidAsync("canvasRenderer.clear", _canvasRef);
         await JSRuntime.InvokeVoidAsync("canvasRenderer.drawAxes", _canvasRef, Viewport.CenterX, Viewport.CenterY, Viewport.UnitsPerPixel, Viewport.CanvasWidth, Viewport.CanvasHeight);
 
@@ -154,10 +291,10 @@
                 {
                     for (double px = 0; px < Viewport.CanvasWidth; px += stepPx)
                     {
-                        var (mX1, mY1) = Viewport.ScreenToMath(px, py);                         // Точка (0,0) в квадрате
-                        var (mX2, mY2) = Viewport.ScreenToMath(px + stepPx, py);                // Точка (1,0)
-                        var (mX3, mY3) = Viewport.ScreenToMath(px + stepPx, py + stepPx);       // Точка (1,1)
-                        var (mX4, mY4) = Viewport.ScreenToMath(px, py + stepPx);                // Точка (0,1)
+                        var (mX1, mY1) = Viewport.ScreenToMath(px, py);
+                        var (mX2, mY2) = Viewport.ScreenToMath(px + stepPx, py);
+                        var (mX3, mY3) = Viewport.ScreenToMath(px + stepPx, py + stepPx);
+                        var (mX4, mY4) = Viewport.ScreenToMath(px, py + stepPx);
 
                         double v1 = eq.Function.Evaluate(mX1, mY1);
                         double v2 = eq.Function.Evaluate(mX2, mY2);

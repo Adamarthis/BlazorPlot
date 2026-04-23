@@ -1,4 +1,11 @@
 ﻿window.canvasRenderer = {
+    getDimensions: function (canvas) {
+        if (!canvas) return [800, 600];
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        return [canvas.clientWidth, canvas.clientHeight];
+    },
+
     clear: function (canvas) {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');

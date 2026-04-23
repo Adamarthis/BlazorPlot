@@ -3,15 +3,48 @@
 @inject CalculatorState State
 @inject ViewportManager Viewport
 
-<canvas @ref="_canvasRef" 
-        width="800" height="600" 
-        style="width: 100%; height: 100%; display: block; cursor: @(_isDragging ? "grabbing" : "grab");"
-        @onwheel="HandleWheel"
-        @onmousedown="OnMouseDown"
-        @onmousemove="OnMouseMove"
-        @onmouseup="OnMouseUp"
-        @onmouseleave="OnMouseUp">
-</canvas>
+<div style="position: relative; width: 100%; height: 100%; overflow: hidden;">
+    <canvas @ref="_canvasRef" 
+            width="800" height="600" 
+            style="width: 100%; height: 100%; display: block; cursor: @(_isDragging ? "grabbing" : "crosshair");"
+            @onwheel="HandleWheel"
+            @onmousedown="OnMouseDown"
+            @onmousemove="OnMouseMove"
+            @onmouseup="OnMouseUp"
+            @onmouseleave="OnMouseUp">
+    </canvas>
+
+    @if (_hover != null)
+    {
+        <div style="position: absolute; 
+            left: @(_hover.ScreenX - 5)px; 
+            top: @(_hover.ScreenY - 5)px; 
+            width: 10px; height: 10px; 
+            background-color: @(_hover.Color); 
+            border: 2px solid white; 
+            border-radius: 50%; 
+            pointer-events: none; 
+            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+            z-index: 10;">
+        </div>
+        
+        <div style="position: absolute; 
+            left: @(_hover.ScreenX + 15)px; 
+            top: @(_hover.ScreenY - 15)px; 
+            background: rgba(25, 25, 25, 0.9); 
+            color: white; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-family: monospace; 
+            font-size: 13px; 
+            pointer-events: none; 
+            white-space: nowrap; 
+            z-index: 10;
+            @(_hover.IsImportant ? "font-weight: bold; border: 1px solid white;" : "")">
+            @Math.Round(_hover.MathX, 3), @Math.Round(_hover.MathY, 3)
+        </div>
+    }
+</div>
 
 @code {
     private ElementReference _canvasRef;

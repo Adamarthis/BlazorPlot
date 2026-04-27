@@ -149,69 +149,131 @@
         var explicitEqs = State.Equations.Where(eq => eq.IsVisible && !eq.HasError && !eq.IsImplicit && !eq.IsPoint && eq.Function != null).ToList();
         var implicitEqs = State.Equations.Where(eq => eq.IsVisible && !eq.HasError && eq.IsImplicit && eq.Function != null).ToList();
 
-        double xAxisPy = Viewport.MathToScreen(0, 0).py;
-        double yAxisPx = Viewport.MathToScreen(0, 0).px;
-
-        for (double px = mousePx - radiusPx; px <= mousePx + radiusPx; px += 1)
+        void TryAddPoint(double mX, double mY, string color, bool isImportant, string label)
         {
-            var (mX, _) = Viewport.ScreenToMath(px, 0);
+            var (px, py) = Viewport.MathToScreen(mX, mY);
+            double distToMouse = Math.Sqrt(Math.Pow(px - mousePx, 2) + Math.Pow(py - mousePy, 2));
+            if (distToMouse > radiusPx) return;
 
-            for (int i = 0; i < explicitEqs.Count; i++)
+            double score = isImportant ? distToMouse * 0.01 : distToMouse;
+            if (score < minScore)
             {
-                var eq1 = explicitEqs[i];
-                double mY1 = eq1.Function!.Evaluate(mX);
-                var (_, py1) = Viewport.MathToScreen(mX, mY1);
+                minScore = score;
+                bestPoint = new TracePoint { ScreenX = px, ScreenY = py, MathX = mX, MathY = mY, Color = color, IsImportant = isImportant, Label = label };
+            }
+        }
 
-                double distToMouse = Math.Sqrt(Math.Pow(px - mousePx, 2) + Math.Pow(py1 - mousePy, 2));
-                if (distToMouse > radiusPx) continue;
+        double startX = Viewport.ScreenToMath(mousePx - radiusPx, 0).mathX;
+        double endX = Viewport.ScreenToMath(mousePx + radiusPx, 0).mathX;
+        int steps = 200;
+        double stepMath = (endX - startX) / steps;
 
-                bool isImportant = false;
-                string label = "";
-                string color = eq1.Color;
-                double finalX = mX;
-                double finalY = mY1;
+        double[] xVals = new double[steps + 1];
+        double[][] yVals = new double[explicitEqs.Count][];
+        
+        for (int i = 0; i <= steps; i++)
+        {
+            xVals[i] = startX + i * stepMath;
+            for (int e = 0; e < explicitEqs.Count; e++)
+            {
+                if (i == 0) yVals[e] = new double[steps + 1];
+                yVals[e][i] = explicitEqs[e].Function!.Evaluate(xVals[i]);
+            }
+        }
 
-                if (Math.Abs(px - yAxisPx) < 4) { finalX = 0; finalY = eq1.Function.Evaluate(0); isImportant = true; label = "Y-Intercept"; }
-                else if (Math.Abs(py1 - xAxisPy) < 4) { finalY = 0; isImportant = true; label = "Root"; }
-                else 
+        for (int i = 1; i < steps; i++)
+        {
+            double mX = xVals[i];
+
+            for (int e1 = 0; e1 < explicitEqs.Count; e1++)
+            {
+                double yCurr = yVals[e1][i];
+                if (double.IsNaN(yCurr) || double.IsInfinity(yCurr)) continue;
+
+                TryAddPoint(mX, yCurr, explicitEqs[e1].Color, false, "");
+
+                double absPrev = Math.Abs(yVals[e1][i - 1]);
+                double absCurr = Math.Abs(yCurr);
+                double absNext = Math.Abs(yVals[e1][i + 1]);
+
+                if (absPrev > absCurr && absNext > absCurr && absCurr < 0.1)
                 {
-                    for (int j = i + 1; j < explicitEqs.Count; j++)
+                    double bestRootX = mX;
+                    double minRootY = absCurr;
+                    for (double microX = mX - stepMath; microX <= mX + stepMath; microX += stepMath / 20.0)
                     {
-                        var eq2 = explicitEqs[j];
-                        double mY2 = eq2.Function!.Evaluate(mX);
-                        var (_, py2) = Viewport.MathToScreen(mX, mY2);
+                        double val = Math.Abs(explicitEqs[e1].Function!.Evaluate(microX));
+                        if (val < minRootY) { minRootY = val; bestRootX = microX; }
+                    }
+                    TryAddPoint(bestRootX, 0, explicitEqs[e1].Color, true, "Root");
+                }
 
-                        if (Math.Abs(py1 - py2) < 3) 
+                for (int e2 = e1 + 1; e2 < explicitEqs.Count; e2++)
+                {
+                    double diffPrev = Math.Abs(yVals[e1][i - 1] - yVals[e2][i - 1]);
+                    double diffCurr = Math.Abs(yCurr - yVals[e2][i]);
+                    double diffNext = Math.Abs(yVals[e1][i + 1] - yVals[e2][i + 1]);
+
+                    if (diffPrev > diffCurr && diffNext > diffCurr && diffCurr < 0.5)
+                    {
+                        double bestInterX = mX;
+                        double bestInterY = (yCurr + yVals[e2][i]) / 2.0;
+                        double minDiff = diffCurr;
+
+                        for (double microX = mX - stepMath; microX <= mX + stepMath; microX += stepMath / 20.0)
                         {
-                            isImportant = true; label = "Intersection";
-                            color = "#FFFFFF"; 
-                            finalY = (mY1 + mY2) / 2.0; 
-                            break;
+                            double yA = explicitEqs[e1].Function!.Evaluate(microX);
+                            double yB = explicitEqs[e2].Function!.Evaluate(microX);
+                            double d = Math.Abs(yA - yB);
+                            if (d < minDiff)
+                            {
+                                minDiff = d;
+                                bestInterX = microX;
+                                bestInterY = (yA + yB) / 2.0;
+                            }
                         }
+                        TryAddPoint(bestInterX, bestInterY, "#FFFFFF", true, "Intersection");
                     }
                 }
 
-                double score = isImportant ? distToMouse * 0.05 : distToMouse;
-
-                if (score < minScore)
+                foreach (var impEq in implicitEqs)
                 {
-                    minScore = score;
-                    var (finalPx, finalPy) = Viewport.MathToScreen(finalX, finalY);
-                    bestPoint = new TracePoint { ScreenX = finalPx, ScreenY = finalPy, MathX = finalX, MathY = finalY, Color = color, IsImportant = isImportant, Label = label };
+                    double valPrev = Math.Abs(impEq.Function!.Evaluate(xVals[i - 1], yVals[e1][i - 1]));
+                    double valCurr = Math.Abs(impEq.Function.Evaluate(xVals[i], yVals[e1][i]));
+                    double valNext = Math.Abs(impEq.Function.Evaluate(xVals[i + 1], yVals[e1][i + 1]));
+
+                    if (valPrev > valCurr && valNext > valCurr && valCurr < 5.0) 
+                    {
+                        double bestInterX = mX;
+                        double bestInterY = yCurr;
+                        double minImpVal = valCurr;
+
+                        for (double microX = mX - stepMath; microX <= mX + stepMath; microX += stepMath / 20.0)
+                        {
+                            double microY = explicitEqs[e1].Function!.Evaluate(microX);
+                            double v = Math.Abs(impEq.Function.Evaluate(microX, microY));
+                            if (v < minImpVal)
+                            {
+                                minImpVal = v;
+                                bestInterX = microX;
+                                bestInterY = microY;
+                            }
+                        }
+                        TryAddPoint(bestInterX, bestInterY, "#FFFFFF", true, "Intersection");
+                    }
                 }
             }
         }
+
         foreach (var eq in implicitEqs)
         {
-            int step = 2;
-            
-            for (double py = mousePy - radiusPx; py <= mousePy + radiusPx; py += step)
+            for (double py = mousePy - radiusPx; py <= mousePy + radiusPx; py += 2)
             {
-                for (double px = mousePx - radiusPx; px <= mousePx + radiusPx; px += step)
+                for (double px = mousePx - radiusPx; px <= mousePx + radiusPx; px += 2)
                 {
                     var (mX1, mY1) = Viewport.ScreenToMath(px, py);
-                    var (mX2, _) = Viewport.ScreenToMath(px + step, py);
-                    var (_, mY3) = Viewport.ScreenToMath(px, py + step);
+                    var (mX2, _) = Viewport.ScreenToMath(px + 2, py);
+                    var (_, mY3) = Viewport.ScreenToMath(px, py + 2);
 
                     double v1 = eq.Function!.Evaluate(mX1, mY1);
                     double v2 = eq.Function.Evaluate(mX2, mY1);
@@ -219,21 +281,7 @@
 
                     if (v1 * v2 <= 0 || v1 * v3 <= 0)
                     {
-                        double distToMouse = Math.Sqrt(Math.Pow(px - mousePx, 2) + Math.Pow(py - mousePy, 2));
-
-                        if (distToMouse < minScore)
-                        {
-                            minScore = distToMouse;
-                            bestPoint = new TracePoint {
-                                ScreenX = px, 
-                                ScreenY = py, 
-                                MathX = mX1, 
-                                MathY = mY1,
-                                Color = eq.Color, 
-                                IsImportant = false, 
-                                Label = ""
-                            };
-                        }
+                        TryAddPoint(mX1, mY1, eq.Color, false, "");
                     }
                 }
             }

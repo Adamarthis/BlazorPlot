@@ -129,17 +129,19 @@
     drawImplicit: function (canvas, segments, color) {
         if (!canvas || !segments) return;
         const ctx = canvas.getContext('2d');
+        
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
-        for (let i = 0; i < segments.length; i+= 4) 
-        {
-            ctx.moveTo(segments[i], segments[i+1]);
-            ctx.lineTo(segments[i+2], segments[i+3]);
+        ctx.lineJoin = 'round';
+        
+        for (let i = 0; i < segments.length; i += 4) {
+            ctx.moveTo(segments[i], segments[i + 1]);
+            ctx.lineTo(segments[i + 2], segments[i + 3]);
         }
+        
         ctx.stroke();
     },
-
     drawPoint: function (canvas, px, py, color) {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');

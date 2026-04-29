@@ -3,6 +3,7 @@ using MathEngine.Lexing;
 using MathEngine.Expressions;
 using BlazorPlot.Web.Models;
 using MathEngine.Parsing;
+using System.Xml;
 
 namespace BlazorPlot.Web.Services
 {
@@ -41,6 +42,19 @@ namespace BlazorPlot.Web.Services
             try
             {
                 string mathText = newText.Trim().ToLowerInvariant();
+                var tokens = new Lexer(mathText).Tokenize();
+                var extractedParams = tokens
+                    .Where(t => t.Type == TokenType.Variable && t.Value != "x" && t.Value != "y")
+                    .Select(t => t.Value)
+                    .Distinct()
+                    .ToList();
+
+                var newParams = new Dictionary<string, double>();
+                foreach (var param in extractedParams)
+                {
+                    newParams[param] = eq.Parameters.ContainsKey(param) ? eq.Parameters[param] : 1.0;
+                }
+                eq.Parameters = newParams;
                 
                 if (mathText.StartsWith("(") && mathText.EndsWith(")") && mathText.Contains(","))
                 {
@@ -77,7 +91,7 @@ namespace BlazorPlot.Web.Services
                     var rootNode = new Parser(new Lexer(mathText).Tokenize()).Parse();
                     eq.Function = new CompiledFunction(rootNode);
                 }
-                eq.HasError = false;
+                eq.HasError = false; 
                 eq.ErrorMessage = "";
             }
             catch (Exception e)

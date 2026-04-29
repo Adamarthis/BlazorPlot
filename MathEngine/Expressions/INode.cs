@@ -4,6 +4,6 @@ namespace MathEngine.Expressions
 {
     public interface INode
     {
-        Expression ToLinqExpression(ParameterExpression xParam, ParameterExpression yParam);, ParameterExpression dictParam
+        Expression ToLinqExpression(ParameterExpression xParam, ParameterExpression yParam, ParameterExpression dictParam);
     }
 }

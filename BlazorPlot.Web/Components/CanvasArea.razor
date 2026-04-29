@@ -177,7 +177,7 @@
             for (int e = 0; e < explicitEqs.Count; e++)
             {
                 if (i == 0) yVals[e] = new double[steps + 1];
-                yVals[e][i] = explicitEqs[e].Function!.Evaluate(xVals[i]);
+                yVals[e][i] = explicitEqs[e].Evaluate(xVals[i]);
             }
         }
 
@@ -202,7 +202,7 @@
                     double minRootY = absCurr;
                     for (double microX = mX - stepMath; microX <= mX + stepMath; microX += stepMath / 20.0)
                     {
-                        double val = Math.Abs(explicitEqs[e1].Function!.Evaluate(microX));
+                        double val = Math.Abs(explicitEqs[e1].Evaluate(microX));
                         if (val < minRootY) { minRootY = val; bestRootX = microX; }
                     }
                     TryAddPoint(bestRootX, 0, explicitEqs[e1].Color, true, "Root");
@@ -222,8 +222,8 @@
 
                         for (double microX = mX - stepMath; microX <= mX + stepMath; microX += stepMath / 20.0)
                         {
-                            double yA = explicitEqs[e1].Function!.Evaluate(microX);
-                            double yB = explicitEqs[e2].Function!.Evaluate(microX);
+                            double yA = explicitEqs[e1].Evaluate(microX);
+                            double yB = explicitEqs[e2].Evaluate(microX);
                             double d = Math.Abs(yA - yB);
                             if (d < minDiff)
                             {
@@ -238,9 +238,9 @@
 
                 foreach (var impEq in implicitEqs)
                 {
-                    double valPrev = Math.Abs(impEq.Function!.Evaluate(xVals[i - 1], yVals[e1][i - 1]));
-                    double valCurr = Math.Abs(impEq.Function.Evaluate(xVals[i], yVals[e1][i]));
-                    double valNext = Math.Abs(impEq.Function.Evaluate(xVals[i + 1], yVals[e1][i + 1]));
+                    double valPrev = Math.Abs(impEq.Evaluate(xVals[i - 1], yVals[e1][i - 1]));
+                    double valCurr = Math.Abs(impEq.Evaluate(xVals[i], yVals[e1][i]));
+                    double valNext = Math.Abs(impEq.Evaluate(xVals[i + 1], yVals[e1][i + 1]));
 
                     if (valPrev > valCurr && valNext > valCurr && valCurr < 5.0) 
                     {
@@ -250,8 +250,8 @@
 
                         for (double microX = mX - stepMath; microX <= mX + stepMath; microX += stepMath / 20.0)
                         {
-                            double microY = explicitEqs[e1].Function!.Evaluate(microX);
-                            double v = Math.Abs(impEq.Function.Evaluate(microX, microY));
+                            double microY = explicitEqs[e1].Evaluate(microX);
+                            double v = Math.Abs(impEq.Evaluate(microX, microY));
                             if (v < minImpVal)
                             {
                                 minImpVal = v;
@@ -275,9 +275,9 @@
                     var (mX2, _) = Viewport.ScreenToMath(px + 2, py);
                     var (_, mY3) = Viewport.ScreenToMath(px, py + 2);
 
-                    double v1 = eq.Function!.Evaluate(mX1, mY1);
-                    double v2 = eq.Function.Evaluate(mX2, mY1);
-                    double v3 = eq.Function.Evaluate(mX1, mY3);
+                    double v1 = eq.Evaluate(mX1, mY1);
+                    double v2 = eq.Evaluate(mX2, mY1);
+                    double v3 = eq.Evaluate(mX1, mY3);
 
                     if (v1 * v2 <= 0 || v1 * v3 <= 0)
                     {
@@ -344,10 +344,10 @@
                         var (mX3, mY3) = Viewport.ScreenToMath(px + stepPx, py + stepPx);
                         var (mX4, mY4) = Viewport.ScreenToMath(px, py + stepPx);
 
-                        double v1 = eq.Function.Evaluate(mX1, mY1);
-                        double v2 = eq.Function.Evaluate(mX2, mY2);
-                        double v3 = eq.Function.Evaluate(mX3, mY3);
-                        double v4 = eq.Function.Evaluate(mX4, mY4);
+                        double v1 = eq.Evaluate(mX1, mY1);
+                        double v2 = eq.Evaluate(mX2, mY2);
+                        double v3 = eq.Evaluate(mX3, mY3);
+                        double v4 = eq.Evaluate(mX4, mY4);
 
                         List<double> pts = new();
 
@@ -375,7 +375,7 @@
 
                 for (double mathX = bounds.XMin; mathX <= bounds.XMax; mathX += stepMathX)
                 {
-                    double mathY = eq.Function.Evaluate(mathX, 0);
+                    double mathY = eq.Evaluate(mathX, 0);
 
                     if (double.IsNaN(mathY) || double.IsInfinity(mathY)) continue;
 

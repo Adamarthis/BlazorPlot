@@ -16,6 +16,24 @@
     {
         <div style="color: red; font-size: 0.8rem; margin-top: 5px;">@Equation.ErrorMessage</div>
     }
+    
+    @if (Equation.Parameters.Any() && !Equation.HasError)
+    {
+        <div style="margin-top: 10px; padding-left: 10px; border-left: 2px solid #ccc;">
+            @foreach (var param in Equation.Parameters.Keys.ToList())
+            {
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                    <span style="font-family: monospace; font-weight: bold; width: 60px;">
+                        @param = @Math.Round(Equation.Parameters[param], 2)
+                    </span>
+                    <input type="range" 
+                           min="-10" max="10" step="0.1" 
+                           value="@Equation.Parameters[param].ToString(System.Globalization.CultureInfo.InvariantCulture)" 
+                           @oninput="(e) => OnParameterChanged(param, e.Value)" 
+                           style="flex: 1; cursor: pointer;" />
+                </div>
+            }
+        </div> }
 </div>
 
 @code {
@@ -24,5 +42,14 @@
     private void OnTextChanged(ChangeEventArgs e)
     {
         State.UpdateEquationText(Equation.Id, e.Value?.ToString() ?? "");
+    }
+
+    public void OnParameterChanged(string paramName, object? value)
+    {
+        if (value != null && double.TryParse(value.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double parsed))
+        {
+            Equation.Parameters[paramName] = parsed;
+            State.NotifyStateChanged();
+        }
     }
 }

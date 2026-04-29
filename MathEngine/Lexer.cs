@@ -95,12 +95,12 @@ namespace MathEngine.Lexing
 
             string identifier = sb.ToString();
 
-            if (identifier == "x" || identifier == "y")
+            if (FunctionRegistry.IsFunction(identifier))
             {
-                return new Token(TokenType.Variable, identifier);
+                return new Token(TokenType.Function, identifier);
             }
             
-            return new Token(TokenType.Function, identifier);
+            return new Token(TokenType.Variable, identifier);
         }
 
     }

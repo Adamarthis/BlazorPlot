@@ -41,7 +41,7 @@ namespace BlazorPlot.Web.Services
             try
             {
                 string mathText = newText.Trim().ToLowerInvariant();
-
+                
                 if (mathText.StartsWith("(") && mathText.EndsWith(")") && mathText.Contains(","))
                 {
                     var inner = mathText.Substring(1, mathText.Length - 2);
@@ -93,6 +93,6 @@ namespace BlazorPlot.Web.Services
             Equations.RemoveAll(e => e.Id == id);
             NotifyStateChanged();
         }
-        private void NotifyStateChanged() => OnChange?.Invoke();
+        public void NotifyStateChanged() => OnChange?.Invoke();
     }
 }

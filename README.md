@@ -8,7 +8,7 @@
 
 **SharpGraph** is a high-performance, client-side mathematical visualization engine and graphical calculator built entirely in C# using Blazor WebAssembly.
 
-Designed to overcome the performance limitations of JavaScript-based math parsers, SharpGraph compiles abstract mathematical expressions directly into native .NET delegates on the fly. It combines the computational raw power of WebAssembly with hardware-accelerated HTML5 Canvas rendering to visualize complex explicit and implicit functions at 60 FPS.
+Designed to overcome the performance limitations of JavaScript-based math parsers, SharpGraph compiles abstract mathematical expressions directly into native .NET delegates on the fly. It combines the computational raw power of WebAssembly with hardware-accelerated HTML5 Canvas rendering to visualize complex explicit and implicit functions.
 
 ---
 

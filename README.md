@@ -27,8 +27,8 @@ Designed to overcome the performance limitations of JavaScript-based math parser
 
 SharpGraph runs **100% on the client-side**. No server round-trips for rendering or math evaluation. 
 
-* **Explicit Functions ($y=f(x)$):** Linear scanning with 1:1 Math-to-Pixel ratio.
-* **Implicit Functions ($f(x,y)=0$):** Grid-based evaluation with linear interpolation. Grid resolution dynamically shifts (16px during Pan/Zoom for max FPS, 4px on idle for crisp edges).
+* **Explicit Functions (y=f(x)):** Linear scanning with 1:1 Math-to-Pixel ratio.
+* **Implicit Functions (f(x,y)=0):** Grid-based evaluation with linear interpolation. Grid resolution dynamically shifts (16px during Pan/Zoom for max FPS, 4px on idle for crisp edges).
 * **Memory Footprint:** Centralized `CalculatorState` ensures singleton data flow without component-level state duplication.
 
 ### The Interop Bridge

@@ -15,7 +15,7 @@ Designed to overcome the performance limitations of JavaScript-based math parser
 ## ✨ Key Features
 
 * 🚀 **JIT Math Engine:** Uses `System.Linq.Expressions` to dynamically compile Abstract Syntax Trees (AST) into native C# lambdas for zero-overhead execution during rendering.
-* 🧮 **Advanced Parsing:** Custom Lexer and Parser (Shunting-yard algorithm) with built-in support for implicit multiplication (e.g., $2x\sin(x)$) and context-aware shadow unary operators.
+* 🧮 **Advanced Parsing:** Custom Lexer and Parser (Shunting-yard algorithm) with built-in support for implicit multiplication (e.g., 2x\sin(x)) and context-aware shadow unary operators.
 * 🍩 **Implicit Equation Rendering:** Implements a dynamic-resolution **Marching Squares** algorithm to visualize complex contours like $x^2 + y^2 - r^2 = 0$ in real-time.
 * 🎯 **Smart Tracing & Micro-stepping:** Numerical local-minimum search algorithms act as a "local radar" to instantly find and magnetically snap to roots and function intersections.
 * 🎛️ **Reactive State Management:** Automatically detects unknown variables in expressions and generates dynamic UI sliders to animate parameters without recompiling the AST.

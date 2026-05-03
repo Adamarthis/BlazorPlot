@@ -8,14 +8,14 @@
 
 **SharpGraph** is a high-performance, client-side mathematical visualization engine and graphical calculator built entirely in C# using Blazor WebAssembly.
 
-Designed to overcome the performance limitations of JavaScript-based math parsers, SharpGraph compiles abstract mathematical expressions directly into native .NET delegates on the fly. It combines the computational raw power of WebAssembly with hardware-accelerated HTML5 Canvas rendering to visualize complex explicit and implicit functions at 60 FPS.
+Designed to overcome the performance limitations of JavaScript-based math parsers, SharpGraph compiles abstract mathematical expressions directly into native .NET delegates on the fly. It combines the computational raw power of WebAssembly with hardware-accelerated HTML5 Canvas rendering to visualize complex explicit and implicit functions.
 
 ---
 
 ## ✨ Key Features
 
 * 🚀 **JIT Math Engine:** Uses `System.Linq.Expressions` to dynamically compile Abstract Syntax Trees (AST) into native C# lambdas for zero-overhead execution during rendering.
-* 🧮 **Advanced Parsing:** Custom Lexer and Parser (Shunting-yard algorithm) with built-in support for implicit multiplication (e.g., $2x\sin(x)$) and context-aware shadow unary operators.
+* 🧮 **Advanced Parsing:** Custom Lexer and Parser (Shunting-yard algorithm) with built-in support for implicit multiplication (e.g., 2x\sin(x)) and context-aware shadow unary operators.
 * 🍩 **Implicit Equation Rendering:** Implements a dynamic-resolution **Marching Squares** algorithm to visualize complex contours like $x^2 + y^2 - r^2 = 0$ in real-time.
 * 🎯 **Smart Tracing & Micro-stepping:** Numerical local-minimum search algorithms act as a "local radar" to instantly find and magnetically snap to roots and function intersections.
 * 🎛️ **Reactive State Management:** Automatically detects unknown variables in expressions and generates dynamic UI sliders to animate parameters without recompiling the AST.
@@ -27,8 +27,8 @@ Designed to overcome the performance limitations of JavaScript-based math parser
 
 SharpGraph runs **100% on the client-side**. No server round-trips for rendering or math evaluation. 
 
-* **Explicit Functions ($y=f(x)$):** Linear scanning with 1:1 Math-to-Pixel ratio.
-* **Implicit Functions ($f(x,y)=0$):** Grid-based evaluation with linear interpolation. Grid resolution dynamically shifts (16px during Pan/Zoom for max FPS, 4px on idle for crisp edges).
+* **Explicit Functions (y=f(x)):** Linear scanning with 1:1 Math-to-Pixel ratio.
+* **Implicit Functions (f(x,y)=0):** Grid-based evaluation with linear interpolation. Grid resolution dynamically shifts (16px during Pan/Zoom for max FPS, 4px on idle for crisp edges).
 * **Memory Footprint:** Centralized `CalculatorState` ensures singleton data flow without component-level state duplication.
 
 ### The Interop Bridge

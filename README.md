@@ -1,4 +1,4 @@
-# 📈 SharpGraph WebAssembly
+# 📈 BlazorPlot WebAssembly
 
 ![C#](https://img.shields.io/badge/C%23-12.0-blue.svg?style=flat&logo=csharp)
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg?style=flat&logo=dotnet)
@@ -6,9 +6,9 @@
 ![Canvas](https://img.shields.io/badge/Rendering-HTML5_Canvas-E34F26.svg?style=flat&logo=html5)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-**SharpGraph** is a high-performance, client-side mathematical visualization engine and graphical calculator built entirely in C# using Blazor WebAssembly.
+**BlazorPlot** is a high-performance, client-side mathematical visualization engine and graphical calculator built entirely in C# using Blazor WebAssembly.
 
-Designed to overcome the performance limitations of JavaScript-based math parsers, SharpGraph compiles abstract mathematical expressions directly into native .NET delegates on the fly. It combines the computational raw power of WebAssembly with hardware-accelerated HTML5 Canvas rendering to visualize complex explicit and implicit functions.
+Designed to overcome the performance limitations of JavaScript-based math parsers, BlazorPlot compiles abstract mathematical expressions directly into native .NET delegates on the fly. It combines the computational raw power of WebAssembly with hardware-accelerated HTML5 Canvas rendering to visualize complex explicit and implicit functions.
 
 ---
 
@@ -25,7 +25,7 @@ Designed to overcome the performance limitations of JavaScript-based math parser
 
 ## 📊 Architecture & Performance
 
-SharpGraph runs **100% on the client-side**. No server round-trips for rendering or math evaluation. 
+BlazorPlot runs **100% on the client-side**. No server round-trips for rendering or math evaluation. 
 
 * **Explicit Functions (y=f(x)):** Linear scanning with 1:1 Math-to-Pixel ratio.
 * **Implicit Functions (f(x,y)=0):** Grid-based evaluation with linear interpolation. Grid resolution dynamically shifts (16px during Pan/Zoom for max FPS, 4px on idle for crisp edges).
@@ -54,8 +54,8 @@ window.canvasRenderer = {
 ### 2. Build and Run
 * Clone the repository and launch the Blazor development server:
 ```Bash
-git clone [https://github.com/yourusername/SharpGraph.git](https://github.com/yourusername/SharpGraph.git)
-cd SharpGraph
+git clone [https://github.com/yourusername/BlazorPlot.git](https://github.com/yourusername/BlazorPlot.git)
+cd BlazorPlot
 dotnet watch run
 ```
 The application will be available at ```https://localhost:5001.3```. 

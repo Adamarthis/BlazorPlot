@@ -25,6 +25,53 @@ Designed to overcome the performance limitations of JavaScript-based math parser
 
 ## 📊 Architecture & Performance
 
+Here is the high-level architecture of BlazorPlot:
+
+```mermaid
+graph TD
+    classDef ui fill:#4285F4,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef state fill:#34A853,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef math fill:#FBBC05,stroke:#fff,stroke-width:2px,color:#000;
+    classDef js fill:#EA4335,stroke:#fff,stroke-width:2px,color:#fff;
+
+    subgraph UI_Layer ["UI Layer (Blazor Razor)"]
+        UI1[Formula Input / Sliders<br/>EquationItem.razor]:::ui
+        UI2[Mouse Events Handling<br/>CanvasArea.razor]:::ui
+    end
+
+    subgraph State_Layer ["State Management"]
+        S1[(CalculatorState<br/>Singleton)]:::state
+        S2[ViewportManager<br/>Coordinates]:::state
+    end
+
+    subgraph Math_Layer ["Math Engine (C#)"]
+        M1[Lexer + Registries<br/>Tokenization]:::math
+        M2[Parser<br/>AST Construction]:::math
+        M3[CompiledFunction<br/>Dynamic Compilation]:::math
+    end
+
+    subgraph Render_Layer ["Rendering (Browser)"]
+        R1[JS Interop<br/>Batch Transfer]:::js
+        R2[renderer.js<br/>Drawing Logic]:::js
+        R3((HTML5 Canvas)):::js
+    end
+
+    UI1 -- Updates text / parameters --> S1
+    UI2 -- Pan, Zoom, Click --> S2
+    
+    S1 -- Passes string --> M1
+    M1 -- Token array --> M2
+    M2 -- AST tree --> M3
+    M3 -- Compiled delegate --> S1
+    
+    S1 -- Equations and delegates --> UI2
+    S2 -- Mathematical bounds --> UI2
+    
+    UI2 -- Coordinate arrays (double[]) --> R1
+    R1 -- JS function calls --> R2
+    R2 -- Rendering primitives --> R3
+```
+
 BlazorPlot runs **100% on the client-side**. No server round-trips for rendering or math evaluation. 
 
 * **Explicit Functions (y=f(x)):** Linear scanning with 1:1 Math-to-Pixel ratio.
